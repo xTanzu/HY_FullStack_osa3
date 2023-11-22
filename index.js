@@ -24,6 +24,19 @@ const persons = [
   },
 ]
 
+app.get("/info", (request, response) => {
+  console.log("forming info page")
+  const persons_length = persons.length
+  const now = Date.now()
+  const date = new Date(now)
+  const count_noun = persons_length === 1 ? "person" : "people"
+  const html = `
+    <p>Phonebook has info for ${persons_length} ${count_noun}</p>
+    <p>${date.toString()}</p>
+    `
+  response.send(html)
+})
+
 app.get("/api/persons", (request, response) => {
   console.log("Getting persons")
   response.json(persons)
