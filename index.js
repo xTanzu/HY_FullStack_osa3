@@ -1,5 +1,6 @@
 const express = require("express")
 const app = express()
+app.use(express.json())
 
 let persons = [
   {
@@ -23,6 +24,14 @@ let persons = [
     number: "39-23-6423122"
   },
 ]
+
+const generateRandomId = (max) => {
+  let id = null
+  do {
+    id = Math.ceil(Math.random() * max)
+  } while (persons.find(person => person.id === id))
+  return id
+}
 
 app.get("/info", (request, response) => {
   console.log("forming info page")
@@ -57,6 +66,26 @@ app.delete("/api/persons/:id", (request, response) => {
   const id = Number(request.params.id)
   persons = persons.filter(person => person.id !== id)
   response.status(204).end()
+})
+
+app.post("/api/persons", (request, response) => {
+  const content = request.body
+
+  if (!content.name) {
+    return response.status(400).json({
+      error: "Both name and number required"
+    })
+  }
+
+  const person = {
+    id: generateRandomId(persons.length * 2),
+    name: content.name,
+    number: content.number
+  }
+
+  persons = persons.concat(person)
+
+  response.json(person)
 })
 
 const PORT = 3001
