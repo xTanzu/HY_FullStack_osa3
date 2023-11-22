@@ -71,9 +71,15 @@ app.delete("/api/persons/:id", (request, response) => {
 app.post("/api/persons", (request, response) => {
   const content = request.body
 
-  if (!content.name) {
+  if (!content.name || !content.number) {
+    console.log("Name or number missing")
     return response.status(400).json({
       error: "Both name and number required"
+    })
+  } else if (persons.find(person => person.name === content.name)) {
+    console.log("Name already exists!")
+    return response.status(400).json({
+      error: "Name already exists!"
     })
   }
 
