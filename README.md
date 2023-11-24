@@ -5,3 +5,5 @@ Helsingin yliopiston FullStack kurssin palautusrepsitorio osalle 3 (Palvelimen o
 Osan tehtävät löytyy osoitteesta: https://fullstackopen.com/osa3
 
 Aikaisemmat kurssin osien vastaukset löytyy repositoriosta https://github.com/xTanzu/HY_FullStack
+
+Linkki sovelluksen pyörivään kehitysaikaiseen backendiin fly.io:ssa: https://hy-fullstack-osa3.fly.dev/
