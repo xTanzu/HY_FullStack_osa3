@@ -34,7 +34,9 @@ app.use(morgan((tokens, req, res) => {
 const errorHandler = (err, req, res, next) => {
   console.log(err.message)
   if (err.name === "CastError") {
-    return res.status(400).send({ error: "malformatted id" })
+    err_msg = "malformatted id"
+    console.log(err_msg)
+    return res.status(400).send({ error: err_msg })
   }
   next(err)
 }
@@ -110,6 +112,28 @@ app.post("/api/persons", (request, response, next) => {
     .then(newPerson => {
       console.log(`'${newPerson.name}' saved`)
       response.json(newPerson)
+    })
+    .catch(error => next(error))
+})
+
+app.put("/api/persons/:id", (request, response, next) => {
+  const content = request.body
+
+  if (!content.name || !content.number) {
+    err_msg = "Name or number missing"
+    response.status(400).json({ error: err_msg })
+    throw new Error(err_msg)
+  }
+
+  const person = {
+    name: content.name,
+    number: content.number
+  }
+
+  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+    .then(updatedPerson => {
+      console.log(`${updatedPerson.name} updated`)
+      response.json(updatedPerson)
     })
     .catch(error => next(error))
 })
