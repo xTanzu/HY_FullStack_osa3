@@ -1,6 +1,9 @@
+const conf = require("dotenv").config()
+require("dotenv-expand").expand(conf)
 const express = require("express")
 const cors = require("cors")
 const morgan = require("morgan")
+const Person = require("./models/person")
 
 const app = express()
 app.use(express.json())
@@ -28,28 +31,28 @@ app.use(morgan((tokens, req, res) => {
   return log_line_format.join(" ")
 }))
 
-let persons = [
-  {
-    id: 1,
-    name: "Arto Hellas",
-    number: "040-123456"
-  },
-  {
-    id: 2,
-    name: "Ada Lovelace",
-    number: "39-44-5323523"
-  },
-  {
-    id: 3,
-    name: "Dan Abramov",
-    number: "12-43-234345"
-  },
-  {
-    id: 4,
-    name: "Mary Poppendick",
-    number: "39-23-6423122"
-  },
-]
+// let persons = [
+//   {
+//     id: 1,
+//     name: "Arto Hellas",
+//     number: "040-123456"
+//   },
+//   {
+//     id: 2,
+//     name: "Ada Lovelace",
+//     number: "39-44-5323523"
+//   },
+//   {
+//     id: 3,
+//     name: "Dan Abramov",
+//     number: "12-43-234345"
+//   },
+//   {
+//     id: 4,
+//     name: "Mary Poppendick",
+//     number: "39-23-6423122"
+//   },
+// ]
 
 const generateRandomId = (max) => {
   let id = null
@@ -74,7 +77,14 @@ app.get("/info", (request, response) => {
 
 app.get("/api/persons", (request, response) => {
   console.log("Getting persons")
-  response.json(persons)
+  Person.find({})
+    .then(result => {
+      response.json(result)
+    })
+    .catch(error => {
+      console.log("Error fetching persons from db", error.message)
+      response.status(500).send("<p>database error</p>")
+    })
 })
 
 app.get("/api/persons/:id", (request, response) => {
