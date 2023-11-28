@@ -83,7 +83,9 @@ app.get("/api/persons", (request, response) => {
     })
     .catch(error => {
       console.log("Error fetching persons from db", error.message)
-      response.status(500).send("<p>database error</p>")
+      response.status(500).json({
+        error: "database error"
+      })
     })
 })
 
@@ -112,22 +114,25 @@ app.post("/api/persons", (request, response) => {
     return response.status(400).json({
       error: "Both name and number required"
     })
-  } else if (persons.find(person => person.name === content.name)) {
-    console.log("Name already exists!")
-    return response.status(400).json({
-      error: "Name already exists!"
+  }
+  Person.find({name: content.name})
+    .then(result => {
+      if (result.length > 0) {
+        console.log("Name already exists:", result[0].name)
+        return response.status(400).json({
+          error: `Name '${result[0].name}' already exists!`
+        })
+      } else {
+        const person = Person({
+          name: content.name,
+          number: content.number
+        })
+        person.save().then(newPerson => {
+          console.log(`'${newPerson.name}' saved`)
+          response.json(newPerson)
+        })
+      }
     })
-  }
-
-  const person = {
-    id: generateRandomId(persons.length * 2),
-    name: content.name,
-    number: content.number
-  }
-
-  persons = persons.concat(person)
-
-  response.json(person)
 })
 
 const PORT = process.env.PORT || 3001
