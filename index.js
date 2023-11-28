@@ -64,6 +64,7 @@ const generateRandomId = (max) => {
 
 app.get("/info", (request, response) => {
   console.log("forming info page")
+  console.error("pöö")
   const persons_length = persons.length
   const now = Date.now()
   const date = new Date(now)
@@ -106,7 +107,7 @@ app.delete("/api/persons/:id", (request, response) => {
   response.status(204).end()
 })
 
-app.post("/api/persons", (request, response) => {
+app.post("/api/persons", (request, response, next) => {
   const content = request.body
 
   if (!content.name || !content.number) {
@@ -119,20 +120,22 @@ app.post("/api/persons", (request, response) => {
     .then(result => {
       if (result.length > 0) {
         console.log("Name already exists:", result[0].name)
-        return response.status(400).json({
-          error: `Name '${result[0].name}' already exists!`
-        })
-      } else {
-        const person = Person({
-          name: content.name,
-          number: content.number
-        })
-        person.save().then(newPerson => {
-          console.log(`'${newPerson.name}' saved`)
-          response.json(newPerson)
-        })
+        throw new Error(`Name '${result[0].name}' already exists!`)
+        // return response.status(400).json({
+        //   error: `Name '${result[0].name}' already exists!`
+        // })
       }
+      const person = Person({
+        name: content.name,
+        number: content.number
+      })
+      return person.save()
     })
+    .then(newPerson => {
+      console.log(`'${newPerson.name}' saved`)
+      response.json(newPerson)
+    })
+    .catch(error => next(error))
 })
 
 const PORT = process.env.PORT || 3001
