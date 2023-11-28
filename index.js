@@ -41,37 +41,43 @@ const errorHandler = (err, req, res, next) => {
   next(err)
 }
 
-app.get("/info", (request, response) => {
+app.get("/info", (request, response, next) => {
   console.log("forming info page")
-  const persons_length = persons.length
-  const now = Date.now()
-  const date = new Date(now)
-  const count_noun = persons_length === 1 ? "person" : "people"
-  const html = `
-    <p>Phonebook has info for ${persons_length} ${count_noun}</p>
-    <p>${date.toString()}</p>
-    `
-  response.send(html)
+  Person.find({})
+    .then(persons => {
+      const persons_length = persons.length
+      const date = new Date(Date.now())
+      const count_noun = persons_length === 1 ? "person" : "people"
+      const html = `
+        <p>Phonebook has info for ${persons_length} ${count_noun}</p>
+        <p>${date.toString()}</p>
+        `
+      response.send(html)
+    })
+    .catch(error => next(error))
 })
 
 app.get("/api/persons", (request, response, next) => {
   console.log("Getting persons")
   Person.find({})
-    .then(result => {
-      response.json(result)
+    .then(persons => {
+      response.json(persons)
     })
     .catch(error => next(error))
 })
 
-app.get("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id)
-  console.log(`Getting person id: ${id}`)
-  person = persons.find(person => person.id === id)
-  if (person) {
-    response.json(person)
-  } else {
-    response.status(404).send("<p>No person found</p>")
-  }
+app.get("/api/persons/:id", (request, response, next) => {
+  console.log(`Getting person id: ${request.params.id}`)
+  Person.findById(request.params.id)
+    .then(person => {
+      if (person) {
+        response.json(person)
+      } else {
+        err_msg = "person not found"
+        response.status(404).json({ error: err_msg })
+      }
+    })
+    .catch(error => next(error))
 })
 
 app.delete("/api/persons/:id", (request, response, next) => {
