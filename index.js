@@ -31,40 +31,16 @@ app.use(morgan((tokens, req, res) => {
   return log_line_format.join(" ")
 }))
 
-// let persons = [
-//   {
-//     id: 1,
-//     name: "Arto Hellas",
-//     number: "040-123456"
-//   },
-//   {
-//     id: 2,
-//     name: "Ada Lovelace",
-//     number: "39-44-5323523"
-//   },
-//   {
-//     id: 3,
-//     name: "Dan Abramov",
-//     number: "12-43-234345"
-//   },
-//   {
-//     id: 4,
-//     name: "Mary Poppendick",
-//     number: "39-23-6423122"
-//   },
-// ]
-
-const generateRandomId = (max) => {
-  let id = null
-  do {
-    id = Math.ceil(Math.random() * max)
-  } while (persons.find(person => person.id === id))
-  return id
+const errorHandler = (err, req, res, next) => {
+  console.log(err.message)
+  if (err.name === "CastError") {
+    return res.status(400).send({ error: "malformatted id" })
+  }
+  next(err)
 }
 
 app.get("/info", (request, response) => {
   console.log("forming info page")
-  console.error("pöö")
   const persons_length = persons.length
   const now = Date.now()
   const date = new Date(now)
@@ -76,18 +52,13 @@ app.get("/info", (request, response) => {
   response.send(html)
 })
 
-app.get("/api/persons", (request, response) => {
+app.get("/api/persons", (request, response, next) => {
   console.log("Getting persons")
   Person.find({})
     .then(result => {
       response.json(result)
     })
-    .catch(error => {
-      console.log("Error fetching persons from db", error.message)
-      response.status(500).json({
-        error: "database error"
-      })
-    })
+    .catch(error => next(error))
 })
 
 app.get("/api/persons/:id", (request, response) => {
@@ -101,7 +72,7 @@ app.get("/api/persons/:id", (request, response) => {
   }
 })
 
-app.delete("/api/persons/:id", (request, response) => {
+app.delete("/api/persons/:id", (request, response, next) => {
   Person.findByIdAndDelete(request.params.id)
     .then(result => {
       if (result) {
@@ -118,16 +89,17 @@ app.post("/api/persons", (request, response, next) => {
   const content = request.body
 
   if (!content.name || !content.number) {
-    console.log("Name or number missing")
-    return response.status(400).json({
-      error: "Both name and number required"
-    })
+    err_msg = "Name or number missing"
+    response.status(400).json({ error: err_msg })
+    throw new Error(err_msg)
   }
+
   Person.find({name: content.name})
     .then(result => {
       if (result.length > 0) {
-        console.log("Name already exists:", result[0].name)
-        throw new Error(`Name '${result[0].name}' already exists!`)
+        err_msg = `Name '${result[0].name}' already exists`
+        response.status(400).json({ error: err_msg })
+        throw new Error(err_msg)
       }
       const person = Person({
         name: content.name,
@@ -141,6 +113,8 @@ app.post("/api/persons", (request, response, next) => {
     })
     .catch(error => next(error))
 })
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
