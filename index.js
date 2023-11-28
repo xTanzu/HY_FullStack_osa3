@@ -102,9 +102,16 @@ app.get("/api/persons/:id", (request, response) => {
 })
 
 app.delete("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id)
-  persons = persons.filter(person => person.id !== id)
-  response.status(204).end()
+  Person.findByIdAndDelete(request.params.id)
+    .then(result => {
+      if (result) {
+        console.log(`deleted '${result.name}'`)
+      } else {
+        console.log("Nothing to delete")
+      }
+      response.status(204).end()
+    })
+    .catch(error => next(error))
 })
 
 app.post("/api/persons", (request, response, next) => {
@@ -121,9 +128,6 @@ app.post("/api/persons", (request, response, next) => {
       if (result.length > 0) {
         console.log("Name already exists:", result[0].name)
         throw new Error(`Name '${result[0].name}' already exists!`)
-        // return response.status(400).json({
-        //   error: `Name '${result[0].name}' already exists!`
-        // })
       }
       const person = Person({
         name: content.name,
