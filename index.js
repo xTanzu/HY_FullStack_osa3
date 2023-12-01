@@ -36,7 +36,9 @@ const errorHandler = (err, req, res, next) => {
   if (err.name === "CastError") {
     err_msg = "malformatted id"
     console.log(err_msg)
-    return res.status(400).send({ error: err_msg })
+    return res.status(400).json({ error: err_msg })
+  } else if (err.name === "ValidationError") {
+    return res.status(400).json({ error: err.message })
   }
   next(err)
 }
@@ -96,25 +98,25 @@ app.delete("/api/persons/:id", (request, response, next) => {
 app.post("/api/persons", (request, response, next) => {
   const content = request.body
 
-  if (!content.name || !content.number) {
-    err_msg = "Name or number missing"
-    response.status(400).json({ error: err_msg })
-    throw new Error(err_msg)
-  }
+  // if (!content.name || !content.number) {
+  //   err_msg = "Name or number missing"
+  //   response.status(400).json({ error: err_msg })
+  //   throw new Error(err_msg)
+  // }
 
-  Person.find({name: content.name})
-    .then(result => {
-      if (result.length > 0) {
-        err_msg = `Name '${result[0].name}' already exists`
-        response.status(400).json({ error: err_msg })
-        throw new Error(err_msg)
-      }
-      const person = Person({
-        name: content.name,
-        number: content.number
-      })
-      return person.save()
-    })
+  // Person.find({name: content.name})
+  //   .then(result => {
+  //     if (result.length > 0) {
+  //       err_msg = `Name '${result[0].name}' already exists`
+  //       response.status(400).json({ error: err_msg })
+  //       throw new Error(err_msg)
+  //     }
+  // })
+  const person = Person({
+    name: content.name,
+    number: content.number
+  })
+  person.save()
     .then(newPerson => {
       console.log(`'${newPerson.name}' saved`)
       response.json(newPerson)
