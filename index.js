@@ -18,11 +18,11 @@ morgan.token("json_body", (req, res) => {
 })
 
 app.use(morgan((tokens, req, res) => {
-  log_line_format = [
-    tokens.method(req, res), 
-    tokens.url(req, res), 
-    tokens.status(req, res), 
-    tokens.res(req, res, "content-length"), "-", 
+  const log_line_format = [
+    tokens.method(req, res),
+    tokens.url(req, res),
+    tokens.status(req, res),
+    tokens.res(req, res, "content-length"), "-",
     tokens["response-time"](req, res), "ms"
   ]
   if (req.method === "POST") {
@@ -34,7 +34,7 @@ app.use(morgan((tokens, req, res) => {
 const errorHandler = (err, req, res, next) => {
   console.log(err.message)
   if (err.name === "CastError") {
-    err_msg = "malformatted id"
+    const err_msg = "malformatted id"
     console.log(err_msg)
     return res.status(400).json({ error: err_msg })
   } else if (err.name === "ValidationError") {
@@ -75,7 +75,7 @@ app.get("/api/persons/:id", (request, response, next) => {
       if (person) {
         response.json(person)
       } else {
-        err_msg = "person not found"
+        const err_msg = "person not found"
         response.status(404).json({ error: err_msg })
       }
     })
@@ -128,7 +128,7 @@ app.put("/api/persons/:id", (request, response, next) => {
   const content = request.body
 
   if (!content.name || !content.number) {
-    err_msg = "Name or number missing"
+    const err_msg = "Name or number missing"
     response.status(400).json({ error: err_msg })
     throw new Error(err_msg)
   }
